@@ -2,5 +2,5 @@ apiVersion: v2
 name: stupid-git
 description: A lightweight Gitweb deployment backed by a configurable hostPath repo volume
 type: application
-version: 0.2.0
+version: 0.2.1
 appVersion: "2.47.0"
