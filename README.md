@@ -1,0 +1,67 @@
+# Stupid Git: A Stupidly Simple Git Instaweb Helm Chart
+
+This project contains a minimal Helm chart for running a lightweight Git `instaweb` instance in Kubernetes.
+
+## Chart location
+
+- [helm/git-instaweb/Chart.yaml](helm/git-instaweb/Chart.yaml)
+- [helm/git-instaweb/values.yaml](helm/git-instaweb/values.yaml)
+- [helm/git-instaweb/templates/deployment.yaml](helm/git-instaweb/templates/deployment.yaml)
+- [helm/git-instaweb/templates/service.yaml](helm/git-instaweb/templates/service.yaml)
+
+## What it does
+
+- Runs a custom image that includes both Git and `lighttpd` for `git instaweb`
+- Exposes a simple `ClusterIP` service on port `8080`
+- Stores repository data under a configurable hostPath mount by default
+- Creates a bare repo at `/srv/git/repo.git` if one does not already exist
+
+## Custom image requirement
+
+`git instaweb` supports `lighttpd` directly, and this is the default backend for a lightweight setup. The stock `alpine/git` image does not include the HTTP daemon, so this chart uses a small custom image defined in [docker/git-instaweb/Dockerfile](docker/git-instaweb/Dockerfile).
+
+Build it locally before installing the chart:
+
+```bash
+docker build -t git-instaweb:latest ./docker/git-instaweb
+```
+
+If your cluster is using a remote registry, push the image there and adjust the repository/tag values accordingly.
+
+## Default configuration
+
+The default hostPath target is:
+
+```yaml
+repo:
+  hostPath:
+    enabled: true
+    path: /var/lib/stupid-git/repos
+    type: DirectoryOrCreate
+```
+
+This path is mounted into the container at `/srv/git`.
+
+## Install
+
+```bash
+helm install git-instaweb ./helm/git-instaweb \
+  --set repo.hostPath.path=/var/lib/stupid-git/repos
+```
+
+## Port-forward
+
+```bash
+kubectl port-forward svc/git-instaweb 8080:8080
+```
+
+Then open: http://localhost:8080
+
+## Override the repo hostPath
+
+```bash
+helm install git-instaweb ./helm/git-instaweb \
+  --set repo.hostPath.enabled=true \
+  --set repo.hostPath.path=/data/git \
+  --set repo.repoPath=myrepo.git
+```

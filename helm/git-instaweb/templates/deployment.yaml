@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "git-instaweb.fullname" . }}
+  labels:
+    {{- include "git-instaweb.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "git-instaweb.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "git-instaweb.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: git-instaweb
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - |
+              set -eu
+              mkdir -p "{{ .Values.repo.mountPath }}"
+              REPO_DIR="{{ .Values.repo.mountPath }}/{{ .Values.repo.repoPath }}"
+              if [ ! -d "$REPO_DIR" ] || { [ ! -d "$REPO_DIR/refs" ] && [ ! -d "$REPO_DIR/objects" ]; }; then
+                git init --bare "$REPO_DIR"
+              fi
+              exec git --git-dir="$REPO_DIR" instaweb --httpd=lighttpd --port={{ .Values.service.port }}
+          volumeMounts:
+            - name: repo-data
+              mountPath: {{ .Values.repo.mountPath }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+          {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+          {{- end }}
+      volumes:
+        - name: repo-data
+          {{- if .Values.repo.hostPath.enabled }}
+          hostPath:
+            path: {{ .Values.repo.hostPath.path | quote }}
+            type: {{ .Values.repo.hostPath.type | quote }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
