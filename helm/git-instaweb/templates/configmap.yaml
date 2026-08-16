@@ -29,6 +29,8 @@ data:
       "/git-logo.png" => "/usr/share/gitweb/git-logo.png"
     )
 
+    url.redirect = ( "^/$" => "/gitweb.cgi" )
+
     $HTTP["url"] =~ "^/gitweb" {
       cgi.assign = (".cgi" => "/usr/bin/perl")
     }
