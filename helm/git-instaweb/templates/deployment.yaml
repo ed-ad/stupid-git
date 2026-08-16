@@ -32,7 +32,14 @@ spec:
               if [ ! -d "$REPO_DIR" ] || { [ ! -d "$REPO_DIR/refs" ] && [ ! -d "$REPO_DIR/objects" ]; }; then
                 git init --bare "$REPO_DIR"
               fi
-              exec git --git-dir="$REPO_DIR" instaweb --httpd=lighttpd --port={{ .Values.service.port }}
+
+              git --git-dir="$REPO_DIR" instaweb --stop >/dev/null 2>&1 || true
+              export BROWSER=echo
+              git --git-dir="$REPO_DIR" instaweb --httpd=lighttpd --port={{ .Values.service.port }} --browser="$BROWSER" >/tmp/git-instaweb.log 2>&1 &
+              GITWEB_PID=$!
+              trap 'kill "$GITWEB_PID" 2>/dev/null || true; exit 0' TERM INT
+              echo "git instaweb is listening on http://127.0.0.1:{{ .Values.service.port }}"
+              wait "$GITWEB_PID"
           volumeMounts:
             - name: repo-data
               mountPath: {{ .Values.repo.mountPath }}
