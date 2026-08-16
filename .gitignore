@@ -1,0 +1,14 @@
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+
+# Git
+*.swp
+
+# Helm packaging
+/dist/
+*.tgz
+
+# Local build artifacts
+/build/
