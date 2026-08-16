@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: git-instaweb
+  repository: ghcr.io/ed-ad/git-instaweb
   tag: "latest"
   pullPolicy: IfNotPresent
   build:

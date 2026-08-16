@@ -26,7 +26,21 @@ Build it locally before installing the chart:
 docker build -t git-instaweb:latest ./docker/git-instaweb
 ```
 
-If your cluster is using a remote registry, push the image there and adjust the repository/tag values accordingly.
+The chart defaults to the published GHCR image built by GitHub Actions:
+
+```yaml
+image:
+  repository: ghcr.io/ed-ad/git-instaweb
+  tag: latest
+```
+
+If your cluster is using a different registry or a private image, override those values during install, for example:
+
+```bash
+helm install git-instaweb ./helm/git-instaweb \
+  --set image.repository=ghcr.io/your-org/git-instaweb \
+  --set image.tag=latest
+```
 
 ## Default configuration
 
