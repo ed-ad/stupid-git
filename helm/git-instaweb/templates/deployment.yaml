@@ -33,7 +33,7 @@ spec:
                 git init --bare "$REPO_DIR"
               fi
 
-              cat > /etc/gitweb.conf <<EOF
+              cat > /etc/gitweb.conf <<'EOF'
               $projectroot = "{{ .Values.repo.mountPath }}";
               $git_base_url = "http://localhost:{{ .Values.service.port }}";
               $projects_list = "{{ .Values.repo.mountPath }}";
@@ -42,7 +42,7 @@ spec:
               $strict_export = "git-daemon-export-ok";
               EOF
 
-              cat > /etc/lighttpd/conf.d/gitweb.conf <<EOF
+              cat > /etc/lighttpd/conf.d/gitweb.conf <<'EOF'
               server.bind = "0.0.0.0"
               server.port = {{ .Values.service.port }}
               server.document-root = "/var/www"
