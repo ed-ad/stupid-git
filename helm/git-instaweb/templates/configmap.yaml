@@ -21,8 +21,8 @@ data:
     server.pid-file = "/var/run/lighttpd.pid"
     server.username = "www-data"
     server.groupname = "www-data"
-    server.errorlog = "/dev/stderr"
-    accesslog.filename = "/dev/stdout"
+    server.errorlog = "/var/log/lighttpd/error.log"
+    accesslog.filename = "/var/log/lighttpd/access.log"
     accesslog.format = "%h %V %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\""
 
     alias.url += (
