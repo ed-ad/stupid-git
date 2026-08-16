@@ -18,7 +18,7 @@ This project contains a minimal Helm chart for running a lightweight Git `instaw
 
 ## Custom image requirement
 
-`git instaweb` supports `lighttpd` directly, and this is the default backend for a lightweight setup. The stock `alpine/git` image does not include the HTTP daemon, so this chart uses a small custom image defined in [docker/git-instaweb/Dockerfile](docker/git-instaweb/Dockerfile).
+`git instaweb` supports `lighttpd` directly, and this is the default backend for a lightweight setup. The stock `alpine/git` image does not reliably include the `git instaweb` subcommand, so this chart uses a Debian-based custom image defined in [docker/git-instaweb/Dockerfile](docker/git-instaweb/Dockerfile) to ensure the command is present.
 
 Build it locally before installing the chart:
 
