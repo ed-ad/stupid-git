@@ -1,6 +1,12 @@
-FROM alpine:3.20
+FROM debian:bookworm-slim
 
-RUN apk add --no-cache git lighttpd
+# Alpine's git package does not include the `git instaweb` subcommand,
+# so use a Debian-based image to ensure the command is available.
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      git \
+      lighttpd \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /srv/git
 
