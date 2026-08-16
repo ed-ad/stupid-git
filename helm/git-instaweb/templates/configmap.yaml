@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "git-instaweb.fullname" . }}-config
+  labels:
+    {{- include "git-instaweb.labels" . | nindent 4 }}
+data:
+  gitweb.conf: |
+    $projectroot = "{{ .Values.repo.mountPath }}";
+    $git_base_url = "http://localhost:{{ .Values.service.port }}";
+    $projects_list = "{{ .Values.repo.mountPath }}";
+    $site_name = "Stupid Git";
+    $export_ok = "git-daemon-export-ok";
+    $strict_export = "git-daemon-export-ok";
+
+  lighttpd.conf: |
+    server.modules = ("mod_access", "mod_alias", "mod_cgi", "mod_redirect")
+    server.document-root = "/var/www"
+    server.port = {{ .Values.service.port }}
+    server.bind = "0.0.0.0"
+    server.pid-file = "/var/run/lighttpd.pid"
+    server.username = "www-data"
+    server.groupname = "www-data"
+
+    alias.url += (
+      "/gitweb.cgi" => "/usr/share/gitweb/gitweb.cgi",
+      "/gitweb.css" => "/usr/share/gitweb/gitweb.css",
+      "/gitweb.js" => "/usr/share/gitweb/gitweb.js",
+      "/git-logo.png" => "/usr/share/gitweb/git-logo.png"
+    )
+
+    $HTTP["url"] =~ "^/gitweb" {
+      cgi.assign = (".cgi" => "/usr/bin/perl")
+    }
+
+    index-file.names += ("gitweb.cgi")
