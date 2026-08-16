@@ -15,7 +15,7 @@ spec:
         {{- include "git-instaweb.selectorLabels" . | nindent 8 }}
     spec:
       containers:
-        - name: git-instaweb
+        - name: gitweb
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
@@ -33,13 +33,36 @@ spec:
                 git init --bare "$REPO_DIR"
               fi
 
-              git --git-dir="$REPO_DIR" instaweb --stop >/dev/null 2>&1 || true
-              export BROWSER=echo
-              git --git-dir="$REPO_DIR" instaweb --httpd=lighttpd --port={{ .Values.service.port }} --browser="$BROWSER" >/tmp/git-instaweb.log 2>&1 &
-              GITWEB_PID=$!
-              trap 'kill "$GITWEB_PID" 2>/dev/null || true; exit 0' TERM INT
-              echo "git instaweb is listening on http://127.0.0.1:{{ .Values.service.port }}"
-              wait "$GITWEB_PID"
+              cat > /etc/gitweb.conf <<EOF
+              $projectroot = "{{ .Values.repo.mountPath }}";
+              $git_base_url = "http://localhost:{{ .Values.service.port }}";
+              $projects_list = "{{ .Values.repo.mountPath }}";
+              $site_name = "Stupid Git";
+              $export_ok = "git-daemon-export-ok";
+              $strict_export = "git-daemon-export-ok";
+              EOF
+
+              cat > /etc/lighttpd/conf.d/gitweb.conf <<EOF
+              server.bind = "0.0.0.0"
+              server.port = {{ .Values.service.port }}
+              server.document-root = "/var/www"
+              server.modules += ("mod_cgi", "mod_alias")
+
+              alias.url += (
+                "/gitweb.cgi" => "/usr/share/gitweb/gitweb.cgi",
+                "/gitweb.css" => "/usr/share/gitweb/gitweb.css",
+                "/gitweb.js" => "/usr/share/gitweb/gitweb.js",
+                "/git-logo.png" => "/usr/share/gitweb/git-logo.png"
+              )
+
+              $HTTP["url"] =~ "^/gitweb" {
+                  cgi.assign = ( ".cgi" => "/usr/bin/perl" )
+              }
+              EOF
+
+              export GITWEB_CONFIG=/etc/gitweb.conf
+              echo "gitweb is listening on http://0.0.0.0:{{ .Values.service.port }}/gitweb.cgi"
+              exec lighttpd -D -f /etc/lighttpd/lighttpd.conf
           volumeMounts:
             - name: repo-data
               mountPath: {{ .Values.repo.mountPath }}
@@ -48,7 +71,7 @@ spec:
           {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
             httpGet:
-              path: /
+              path: /gitweb.cgi
               port: http
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
@@ -57,7 +80,7 @@ spec:
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
-              path: /
+              path: /gitweb.cgi
               port: http
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}

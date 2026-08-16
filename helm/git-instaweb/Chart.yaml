@@ -1,6 +1,6 @@
 apiVersion: v2
 name: stupid-git
-description: A lightweight Git instaweb deployment backed by a configurable hostPath repo volume
+description: A lightweight Gitweb deployment backed by a configurable hostPath repo volume
 type: application
-version: 0.1.7
+version: 0.2.0
 appVersion: "2.47.0"

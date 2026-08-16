@@ -1,6 +1,6 @@
-# Stupid Git: A Stupidly Simple Git Instaweb Helm Chart
+# Stupid Git: A Stupidly Simple Gitweb Helm Chart
 
-This project contains a minimal Helm chart for running a lightweight Git `instaweb` instance in Kubernetes.
+This project contains a minimal Helm chart for running a lightweight Gitweb instance in Kubernetes.
 
 ## Chart location
 
@@ -11,14 +11,14 @@ This project contains a minimal Helm chart for running a lightweight Git `instaw
 
 ## What it does
 
-- Runs a custom image that includes both Git and `lighttpd` for `git instaweb`
+- Runs a custom image that includes both Git and `lighttpd` for `gitweb`
 - Exposes a simple `ClusterIP` service on port `8080`
 - Stores repository data under a configurable hostPath mount by default
 - Creates a bare repo at `/srv/git/repo.git` if one does not already exist
 
 ## Custom image requirement
 
-`git instaweb` supports `lighttpd` directly, and this is the default backend for a lightweight setup. The stock `alpine/git` image does not reliably include the `git instaweb` subcommand, so this chart uses a Debian-based custom image defined in [docker/git-instaweb/Dockerfile](docker/git-instaweb/Dockerfile) to ensure the command is present.
+`gitweb` is served through `lighttpd` as a CGI application. The stock `alpine/git` image does not reliably include the `gitweb` CGI runtime, so this chart uses a Debian-based custom image defined in [docker/git-instaweb/Dockerfile](docker/git-instaweb/Dockerfile) to ensure the web interface is present.
 
 Build it locally before installing the chart:
 
