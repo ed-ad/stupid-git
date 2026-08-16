@@ -41,7 +41,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to GitHub Container Registry
-        if: github.event_name != 'pull_request'
+        if: github.event_name \!= 'pull_request'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -64,7 +64,7 @@ jobs:
         with:
           context: ./docker/git-instaweb
           file: ./docker/git-instaweb/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ github.event_name \!= 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
@@ -83,16 +83,19 @@ jobs:
         uses: azure/setup-helm@v4
 
       - name: Package chart
-        run: helm package ./helm/git-instaweb --destination ./dist
+        run: |
+          mkdir -p ./dist
+          helm package ./helm/git-instaweb --destination ./dist
+          helm repo index ./dist --url https://ed-ad.github.io/stupid-git --merge ./dist/index.yaml || true
 
       - name: Upload chart artifact
         uses: actions/upload-artifact@v4
         with:
           name: git-instaweb-chart
-          path: ./dist/*.tgz
+          path: ./dist/*
 
       - name: Publish chart to GitHub Pages
-        if: github.event_name != 'pull_request'
+        if: github.event_name \!= 'pull_request'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
