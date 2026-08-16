@@ -31,12 +31,16 @@ spec:
             - |
               set -eu
               mkdir -p "{{ .Values.repo.mountPath }}"
+              mkdir -p /var/log/lighttpd
+              touch /var/log/lighttpd/access.log /var/log/lighttpd/error.log
+              chown -R www-data:www-data /var/log/lighttpd
               REPO_DIR="{{ .Values.repo.mountPath }}/{{ .Values.repo.repoPath }}"
               if [ ! -d "$REPO_DIR" ] || { [ ! -d "$REPO_DIR/refs" ] && [ ! -d "$REPO_DIR/objects" ]; }; then
                 git init --bare "$REPO_DIR"
               fi
 
               echo "gitweb is listening on http://0.0.0.0:{{ .Values.service.port }}/gitweb.cgi"
+              tail -n +1 -F /var/log/lighttpd/access.log /var/log/lighttpd/error.log &
               exec lighttpd -D -f /etc/lighttpd/lighttpd.conf
           volumeMounts:
             - name: repo-data
