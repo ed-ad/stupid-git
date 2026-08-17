@@ -3,13 +3,13 @@ entries:
   stupid-git:
   - apiVersion: v2
     appVersion: 2.47.0
-    created: "2026-08-16T22:44:32.89758529Z"
-    description: A lightweight Gitweb deployment backed by a configurable hostPath
-      repo volume
-    digest: 58499f8d6fb6e6a5f7482baf24b21767c491b65615f556dcc24f3b29b3f81334
+    created: "2026-08-17T09:08:49.959282883Z"
+    description: A lightweight Gitweb & git-http-backend deployment backed by a configurable
+      hostPath repo volume
+    digest: 8023d3ac3efaf00fbd3976eccd1a2673f01fc048bb947954904405a56618b36f
     name: stupid-git
     type: application
     urls:
-    - https://ed-ad.github.io/stupid-git/stupid-git-0.2.5.tgz
-    version: 0.2.5
-generated: "2026-08-16T22:44:32.897167918Z"
+    - https://ed-ad.github.io/stupid-git/stupid-git-0.3.0.tgz
+    version: 0.3.0
+generated: "2026-08-17T09:08:49.958849083Z"
