@@ -14,7 +14,7 @@ data:
     $strict_export = "git-daemon-export-ok";
 
   lighttpd.conf: |
-    server.modules = ("mod_access", "mod_accesslog", "mod_alias", "mod_cgi", "mod_redirect")
+    server.modules = ("mod_access", "mod_accesslog", "mod_alias", "mod_cgi", "mod_redirect", "mod_rewrite")
     server.document-root = "/var/www"
     server.port = {{ .Values.service.port }}
     server.bind = "0.0.0.0"
@@ -29,7 +29,8 @@ data:
       "/ui/gitweb.cgi" => "/usr/share/gitweb/gitweb.cgi",
       "/ui/gitweb.css" => "/usr/share/gitweb/gitweb.css",
       "/ui/gitweb.js" => "/usr/share/gitweb/gitweb.js",
-      "/ui/git-logo.png" => "/usr/share/gitweb/git-logo.png"
+      "/ui/git-logo.png" => "/usr/share/gitweb/git-logo.png",
+      "/git-http-backend" => "/usr/local/bin/git-http-backend-wrapper"
     )
 
     url.redirect = ( "^/ui$" => "/ui/gitweb.cgi" )
@@ -39,11 +40,8 @@ data:
     }
 
     $HTTP["url"] !~ "^/ui/" {
-      cgi.assign = ("" => "/usr/lib/git-core/git-http-backend")
-      setenv.add-environment = (
-        "GIT_PROJECT_ROOT" => "{{ .Values.repo.mountPath }}",
-        "GIT_HTTP_EXPORT_ALL" => "1"
-      )
+      url.rewrite-once = ("^/(.*)$" => "/git-http-backend/$1")
+      cgi.assign = ("/git-http-backend" => "/usr/local/bin/git-http-backend-wrapper")
     }
 
     index-file.names += ("gitweb.cgi")
