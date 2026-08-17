@@ -24,6 +24,10 @@ spec:
           env:
             - name: GITWEB_CONFIG
               value: /etc/gitweb.conf
+            - name: GIT_PROJECT_ROOT
+              value: "{{ .Values.repo.mountPath }}"
+            - name: GIT_HTTP_EXPORT_ALL
+              value: "1"
           command:
             - /bin/sh
             - -c
@@ -39,7 +43,7 @@ spec:
                 git init --bare "$REPO_DIR"
               fi
 
-              echo "gitweb is listening on http://0.0.0.0:{{ .Values.service.port }}/gitweb.cgi"
+              echo "git-http-backend is listening on http://0.0.0.0:{{ .Values.service.port }}/{{ .Values.repo.repoPath }}"
               tail -n +1 -F /var/log/lighttpd/access.log /var/log/lighttpd/error.log &
               exec lighttpd -D -f /etc/lighttpd/lighttpd.conf
           volumeMounts:
@@ -58,7 +62,7 @@ spec:
           {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
             httpGet:
-              path: /gitweb.cgi
+              path: /{{ .Values.repo.repoPath }}/info/refs?service=git-upload-pack
               port: http
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
@@ -67,7 +71,7 @@ spec:
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
-              path: /gitweb.cgi
+              path: /{{ .Values.repo.repoPath }}/info/refs?service=git-upload-pack
               port: http
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
