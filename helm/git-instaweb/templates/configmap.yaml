@@ -44,7 +44,7 @@ data:
     }
 
     $HTTP["url"] !~ "^/ui/" {
-      url.rewrite-if-not-file = ("^/(.*)$" => "/git-http-backend/$1")
+      url.rewrite-once = ("^/(.*)$" => "/git-http-backend/$1")
       cgi.assign = ("/git-http-backend" => "/usr/local/bin/git-http-backend-wrapper")
     }
 

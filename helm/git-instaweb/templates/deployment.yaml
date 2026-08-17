@@ -50,14 +50,19 @@ spec:
               #!/bin/sh
               export GIT_PROJECT_ROOT="{{ .Values.repo.mountPath }}"
               export GIT_HTTP_EXPORT_ALL="1"
+              export REQUEST_METHOD="${REQUEST_METHOD:-GET}"
+              export PATH_INFO="${PATH_INFO:-/{{ .Values.repo.repoPath }}/info/refs}"
+              export QUERY_STRING="${QUERY_STRING:-service=git-upload-pack}"
               exec /usr/lib/git-core/git-http-backend
               EOF
               chmod 755 /usr/local/bin/git-http-backend-wrapper
 
               REPO_DIR="{{ .Values.repo.mountPath }}/{{ .Values.repo.repoPath }}"
-              if [ ! -d "$REPO_DIR" ] || { [ ! -d "$REPO_DIR/refs" ] && [ ! -d "$REPO_DIR/objects" ]; }; then
+              mkdir -p "{{ .Values.repo.mountPath }}"
+              if ! git --git-dir="$REPO_DIR" rev-parse --is-bare-repository >/dev/null 2>&1; then
                 git init --bare "$REPO_DIR"
               fi
+              chown -R www-data:www-data "{{ .Values.repo.mountPath }}"
 
               echo "git-http-backend is listening on http://0.0.0.0:{{ .Values.service.port }}/{{ .Values.repo.repoPath }}"
               tail -n +1 -F /var/log/lighttpd/access.log /var/log/lighttpd/error.log &
