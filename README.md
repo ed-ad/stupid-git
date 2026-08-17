@@ -1,6 +1,6 @@
-# Stupid Git: A simple Gitweb and git-http-backend Helm Chart
+# Stupid Git: a simple Git smart-HTTP Helm Chart
 
-This project contains a minimal Helm chart for running a lightweight Gitweb UI and a Git smart HTTP backend in Kubernetes. The Gitweb interface is served under `/ui`, while Git repositories are exposed over HTTP at the root of the webserver for normal Git client operations such as `git clone`, `git fetch`, and `git push`.
+This project contains a minimal Helm chart for running a Git smart-HTTP server in Kubernetes. Repositories are exposed over HTTP at the root of the webserver for normal Git client operations such as `git clone`, `git fetch`, and `git push`.
 
 ## Chart location
 
@@ -11,15 +11,15 @@ This project contains a minimal Helm chart for running a lightweight Gitweb UI a
 
 ## What it does
 
-- Runs a custom image that includes Git, `lighttpd`, `gitweb`, and the `git-http-backend` CGI service
-- Serves the Gitweb browser UI at `/ui` and exposes repositories over smart HTTP at the root URL
+- Runs a custom image that includes Git and `lighttpd`
+- Exposes repositories over smart HTTP at the root URL
 - Exposes a simple `ClusterIP` service on port `8080`
 - Stores repository data under a configurable hostPath mount by default
 - Creates a bare repo at `/srv/git/repo.git` if one does not already exist
 
 ## Custom image requirement
 
-`gitweb` is served through `lighttpd` as a CGI application and the Git HTTP backend is exposed through the same webserver. The stock `alpine/git` image does not reliably include the `gitweb` CGI runtime, so this chart uses a Debian-based custom image defined in [docker/git-instaweb/Dockerfile](docker/git-instaweb/Dockerfile) to ensure both the web interface and the HTTP backend are available.
+This chart uses a Debian-based image defined in [docker/git-instaweb/Dockerfile](docker/git-instaweb/Dockerfile) so the `git-http-backend` CGI service is available along with `lighttpd`.
 
 Build it locally before installing the chart:
 
@@ -70,7 +70,11 @@ helm install git-instaweb ./helm/git-instaweb \
 kubectl port-forward svc/git-instaweb 8080:8080
 ```
 
-Then open: http://localhost:8080
+Then clone with a URL like:
+
+```bash
+git clone http://localhost:8080/repo.git
+```
 
 ## Override the repo hostPath
 

@@ -1,10 +1,9 @@
 FROM debian:bookworm-slim
 
-# Use a Debian-based image with the gitweb CGI and lighttpd runtime available.
+# Use a Debian-based image with Git and the lighttpd runtime needed for smart HTTP.
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       git \
-      gitweb \
       lighttpd \
       perl \
     && rm -rf /var/lib/apt/lists/*

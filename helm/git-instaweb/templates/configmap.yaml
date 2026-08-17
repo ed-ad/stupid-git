@@ -5,16 +5,8 @@ metadata:
   labels:
     {{- include "git-instaweb.labels" . | nindent 4 }}
 data:
-  gitweb.conf: |
-    $projectroot = "{{ .Values.repo.mountPath }}";
-    $git_base_url = "http://localhost:{{ .Values.service.port }}/ui";
-    $projects_list = "{{ .Values.repo.mountPath }}";
-    $site_name = "Stupid Git";
-    $export_ok = "git-daemon-export-ok";
-    $strict_export = "git-daemon-export-ok";
-
   lighttpd.conf: |
-    server.modules = ("mod_access", "mod_accesslog", "mod_alias", "mod_cgi", "mod_redirect", "mod_rewrite", "mod_setenv")
+    server.modules = ("mod_access", "mod_accesslog", "mod_alias", "mod_cgi", "mod_setenv")
     server.document-root = "/var/www"
     server.port = {{ .Values.service.port }}
     server.bind = "0.0.0.0"
@@ -25,27 +17,10 @@ data:
     accesslog.filename = "/var/log/lighttpd/access.log"
     accesslog.format = "%h %V %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\""
 
-    setenv.add-environment = (
+    setenv.set-environment = (
       "GIT_PROJECT_ROOT" => "{{ .Values.repo.mountPath }}",
-      "GIT_HTTP_EXPORT_ALL" => "1"
+      "GIT_HTTP_EXPORT_ALL" => ""
     )
 
-    alias.url += (
-      "/ui/gitweb.cgi" => "/usr/share/gitweb/gitweb.cgi",
-      "/ui/gitweb.css" => "/usr/share/gitweb/gitweb.css",
-      "/ui/gitweb.js" => "/usr/share/gitweb/gitweb.js",
-      "/ui/git-logo.png" => "/usr/share/gitweb/git-logo.png"
-    )
-
-    url.redirect = ( "^/ui$" => "/ui/gitweb.cgi" )
-
-    $HTTP["url"] =~ "^/ui/" {
-      cgi.assign = (".cgi" => "/usr/bin/perl")
-    }
-
-    $HTTP["url"] !~ "^/ui/" {
-      url.rewrite-once = ("^/(.*)$" => "/git-http-backend/$1")
-      cgi.assign = ("/git-http-backend" => "/usr/local/bin/git-http-backend-wrapper")
-    }
-
-    index-file.names += ("gitweb.cgi")
+    alias.url = ( "" => "/usr/local/bin/git-http-backend-wrapper" )
+    cgi.assign = ( "" => "" )
