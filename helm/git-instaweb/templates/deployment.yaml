@@ -23,15 +23,13 @@ spec:
         {{- include "git-instaweb.selectorLabels" . | nindent 8 }}
     spec:
       containers:
-        - name: gitweb
+        - name: git-http
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
           env:
-            - name: GITWEB_CONFIG
-              value: /etc/gitweb.conf
             - name: GIT_PROJECT_ROOT
               value: "{{ .Values.repo.mountPath }}"
             - name: GIT_HTTP_EXPORT_ALL
@@ -70,10 +68,6 @@ spec:
           volumeMounts:
             - name: repo-data
               mountPath: {{ .Values.repo.mountPath }}
-            - name: gitweb-config
-              mountPath: /etc/gitweb.conf
-              subPath: gitweb.conf
-              readOnly: true
             - name: lighttpd-config
               mountPath: /etc/lighttpd/lighttpd.conf
               subPath: lighttpd.conf
@@ -107,12 +101,6 @@ spec:
           {{- else }}
           emptyDir: {}
           {{- end }}
-        - name: gitweb-config
-          configMap:
-            name: {{ include "git-instaweb.fullname" . }}-config
-            items:
-              - key: gitweb.conf
-                path: gitweb.conf
         - name: lighttpd-config
           configMap:
             name: {{ include "git-instaweb.fullname" . }}-config
