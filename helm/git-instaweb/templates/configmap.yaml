@@ -7,7 +7,7 @@ metadata:
 data:
   gitweb.conf: |
     $projectroot = "{{ .Values.repo.mountPath }}";
-    $git_base_url = "http://localhost:{{ .Values.service.port }}";
+    $git_base_url = "http://localhost:{{ .Values.service.port }}/ui";
     $projects_list = "{{ .Values.repo.mountPath }}";
     $site_name = "Stupid Git";
     $export_ok = "git-daemon-export-ok";
@@ -26,16 +26,24 @@ data:
     accesslog.format = "%h %V %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\""
 
     alias.url += (
-      "/gitweb.cgi" => "/usr/share/gitweb/gitweb.cgi",
-      "/gitweb.css" => "/usr/share/gitweb/gitweb.css",
-      "/gitweb.js" => "/usr/share/gitweb/gitweb.js",
-      "/git-logo.png" => "/usr/share/gitweb/git-logo.png"
+      "/ui/gitweb.cgi" => "/usr/share/gitweb/gitweb.cgi",
+      "/ui/gitweb.css" => "/usr/share/gitweb/gitweb.css",
+      "/ui/gitweb.js" => "/usr/share/gitweb/gitweb.js",
+      "/ui/git-logo.png" => "/usr/share/gitweb/git-logo.png"
     )
 
-    url.redirect = ( "^/$" => "/gitweb.cgi" )
+    url.redirect = ( "^/ui$" => "/ui/gitweb.cgi" )
 
-    $HTTP["url"] =~ "^/gitweb" {
+    $HTTP["url"] =~ "^/ui/" {
       cgi.assign = (".cgi" => "/usr/bin/perl")
+    }
+
+    $HTTP["url"] !~ "^/ui/" {
+      cgi.assign = ("" => "/usr/lib/git-core/git-http-backend")
+      setenv.add-environment = (
+        "GIT_PROJECT_ROOT" => "{{ .Values.repo.mountPath }}",
+        "GIT_HTTP_EXPORT_ALL" => "1"
+      )
     }
 
     index-file.names += ("gitweb.cgi")
