@@ -34,8 +34,7 @@ data:
       "/ui/gitweb.cgi" => "/usr/share/gitweb/gitweb.cgi",
       "/ui/gitweb.css" => "/usr/share/gitweb/gitweb.css",
       "/ui/gitweb.js" => "/usr/share/gitweb/gitweb.js",
-      "/ui/git-logo.png" => "/usr/share/gitweb/git-logo.png",
-      "/git-http-backend" => "/usr/local/bin/git-http-backend-wrapper"
+      "/ui/git-logo.png" => "/usr/share/gitweb/git-logo.png"
     )
 
     url.redirect = ( "^/ui$" => "/ui/gitweb.cgi" )
