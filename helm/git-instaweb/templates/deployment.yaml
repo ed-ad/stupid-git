@@ -6,11 +6,19 @@ metadata:
     {{- include "git-instaweb.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
   selector:
     matchLabels:
       {{- include "git-instaweb.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
       labels:
         {{- include "git-instaweb.selectorLabels" . | nindent 8 }}
     spec:
@@ -38,6 +46,14 @@ spec:
               mkdir -p /var/log/lighttpd
               touch /var/log/lighttpd/access.log /var/log/lighttpd/error.log
               chown -R www-data:www-data /var/log/lighttpd
+              cat > /usr/local/bin/git-http-backend-wrapper <<'EOF'
+              #!/bin/sh
+              export GIT_PROJECT_ROOT="{{ .Values.repo.mountPath }}"
+              export GIT_HTTP_EXPORT_ALL="1"
+              exec /usr/lib/git-core/git-http-backend
+              EOF
+              chmod 755 /usr/local/bin/git-http-backend-wrapper
+
               REPO_DIR="{{ .Values.repo.mountPath }}/{{ .Values.repo.repoPath }}"
               if [ ! -d "$REPO_DIR" ] || { [ ! -d "$REPO_DIR/refs" ] && [ ! -d "$REPO_DIR/objects" ]; }; then
                 git init --bare "$REPO_DIR"
