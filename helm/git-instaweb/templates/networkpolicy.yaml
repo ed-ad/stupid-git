@@ -1,0 +1,28 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "git-instaweb.fullname" . }}
+  labels:
+    {{- include "git-instaweb.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    {{- if .Values.networkPolicy.podSelector }}
+    {{- toYaml .Values.networkPolicy.podSelector | nindent 4 }}
+    {{- else }}
+    matchLabels:
+      {{- include "git-instaweb.selectorLabels" . | nindent 6 }}
+    {{- end }}
+  {{- if .Values.networkPolicy.policyTypes }}
+  policyTypes:
+    {{- toYaml .Values.networkPolicy.policyTypes | nindent 4 }}
+  {{- end }}
+  {{- if .Values.networkPolicy.ingress }}
+  ingress:
+    {{- toYaml .Values.networkPolicy.ingress | nindent 4 }}
+  {{- end }}
+  {{- if .Values.networkPolicy.egress }}
+  egress:
+    {{- toYaml .Values.networkPolicy.egress | nindent 4 }}
+  {{- end }}
+{{- end }}
